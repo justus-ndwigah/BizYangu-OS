@@ -118,7 +118,7 @@ See `.env.example` for optional environment variables (M-PESA credentials, AI AP
 
 **REPORTS**
 ![reports](docs/screenshots/reports.png)
-![reports](docs/screenshots/reports.png)
+![report](docs/screenshots/report.png)
 
 **AI ADVISOR**
 ![AI Advisor](docs/screenshots/AI-advisor.png)
