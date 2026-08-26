@@ -103,11 +103,28 @@ See `.env.example` for optional environment variables (M-PESA credentials, AI AP
 ## Screenshots
 **DASHBOARD**
 ![Dashboard](docs/screenshots/dashboard.png)
+
 **SALES**
 ![record-sales](docs/screenshots/record-sales.png)
-**Inventory**
+
+**INVENTORY**
 ![inventory](docs/screenshots/inventory.png)
 
+**CUSTOMERS & DEPTS**
+![customers](docs/screenshots/customers.png)
+
+**MPESA**
+![mpesa](docs/screenshots/mpesa.png)
+
+**REPORTS**
+![reports](docs/screenshots/reports.png)
+![reports](docs/screenshots/reports.png)
+
+**AI ADVISOR**
+![AI Advisor](docs/screenshots/AI-advisor.png)
+
+**MULTI-USER**
+![settings](docs/screenshots/settings.png)
 ## License
 
 MIT
