@@ -1,0 +1,121 @@
+import {
+  pgTable,
+  serial,
+  text,
+  numeric,
+  integer,
+  boolean,
+  timestamp,
+  pgEnum,
+} from "drizzle-orm/pg-core";
+
+// ── SHOP SETTINGS (single row, id = 1) ───────────────────────────────────
+// Holds the business profile used on receipts/reports and app-wide defaults.
+// Populated by the first-run setup wizard.
+export const shopSettings = pgTable("shop_settings", {
+  id: integer("id").primaryKey().default(1),
+  shopName: text("shop_name").notNull().default("My Duka"),
+  ownerName: text("owner_name"),
+  phone: text("phone"),
+  address: text("address"),
+  currency: text("currency").notNull().default("KES"),
+  receiptFooter: text("receipt_footer").default("Asante kwa kununua!"),
+  defaultLowStockThreshold: integer("default_low_stock_threshold")
+    .notNull()
+    .default(5),
+  mpesaShortcode: text("mpesa_shortcode"),
+  setupComplete: boolean("setup_complete").notNull().default(false),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// ── PRODUCTS ───────────────────────────────────────────────────────────────
+export const products = pgTable("products", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  sku: text("sku").unique(),
+  category: text("category").notNull(),
+  buyingPrice: numeric("buying_price", { precision: 12, scale: 2 }).notNull(),
+  sellingPrice: numeric("selling_price", { precision: 12, scale: 2 }).notNull(),
+  stock: integer("stock").notNull().default(0),
+  lowStockThreshold: integer("low_stock_threshold").notNull().default(5),
+  unit: text("unit").notNull().default("pcs"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// ── CUSTOMERS ─────────────────────────────────────────────────────────────
+export const customers = pgTable("customers", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  phone: text("phone"),
+  totalDebt: numeric("total_debt", { precision: 12, scale: 2 })
+    .notNull()
+    .default("0"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// ── PAYMENT METHOD ENUM ───────────────────────────────────────────────────
+export const paymentMethodEnum = pgEnum("payment_method", [
+  "Cash",
+  "M-PESA",
+  "Credit",
+]);
+
+// ── SALES ─────────────────────────────────────────────────────────────────
+export const sales = pgTable("sales", {
+  id: serial("id").primaryKey(),
+  receiptNumber: text("receipt_number").notNull().unique(),
+  total: numeric("total", { precision: 12, scale: 2 }).notNull(),
+  method: paymentMethodEnum("method").notNull(),
+  onCredit: boolean("on_credit").notNull().default(false),
+  customerId: integer("customer_id").references(() => customers.id, { onDelete: "set null" }),
+  customerName: text("customer_name"),
+  mpesaRef: text("mpesa_ref"),
+  mpesaReceipt: text("mpesa_receipt"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// ── SALE ITEMS ────────────────────────────────────────────────────────────
+export const saleItems = pgTable("sale_items", {
+  id: serial("id").primaryKey(),
+  saleId: integer("sale_id").notNull().references(() => sales.id, { onDelete: "cascade" }),
+  productId: integer("product_id").notNull().references(() => products.id),
+  productName: text("product_name").notNull(),
+  quantity: integer("quantity").notNull(),
+  unitPrice: numeric("unit_price", { precision: 12, scale: 2 }).notNull(),
+  subtotal: numeric("subtotal", { precision: 12, scale: 2 }).notNull(),
+});
+
+// ── DEBTS ─────────────────────────────────────────────────────────────────
+export const debts = pgTable("debts", {
+  id: serial("id").primaryKey(),
+  customerId: integer("customer_id").notNull().references(() => customers.id, { onDelete: "cascade" }),
+  customerName: text("customer_name").notNull(),
+  amount: numeric("amount", { precision: 12, scale: 2 }).notNull(),
+  description: text("description"),
+  settled: boolean("settled").notNull().default(false),
+  settledAt: timestamp("settled_at"),
+  saleId: integer("sale_id").references(() => sales.id, { onDelete: "set null" }),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// ── MPESA TRANSACTIONS ────────────────────────────────────────────────────
+export const mpesaStatusEnum = pgEnum("mpesa_status", [
+  "Pending",
+  "Confirmed",
+  "Failed",
+]);
+
+export const mpesaTransactions = pgTable("mpesa_transactions", {
+  id: serial("id").primaryKey(),
+  phone: text("phone").notNull(),
+  amount: numeric("amount", { precision: 12, scale: 2 }).notNull(),
+  status: mpesaStatusEnum("status").notNull().default("Pending"),
+  checkoutRequestId: text("checkout_request_id"),
+  mpesaReceiptNumber: text("mpesa_receipt_number"),
+  failureReason: text("failure_reason"),
+  saleId: integer("sale_id").references(() => sales.id, { onDelete: "set null" }),
+  confirmedAt: timestamp("confirmed_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});

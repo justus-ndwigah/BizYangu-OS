@@ -1,0 +1,88 @@
+{
+  "name": "@workspace/desktop",
+  "productName": "BizYangu OS",
+  "version": "1.0.0",
+  "private": true,
+  "description": "BiasharaOS desktop app — sales, stock, customers, debts, M-PESA and reports for Kenyan dukas, running fully offline on your computer.",
+  "author": "BiasharaOS",
+  "license": "MIT",
+  "main": "dist/main.cjs",
+  "type": "commonjs",
+  "scripts": {
+    "build:web": "npm run build --workspace=@workspace/biashara-os",
+    "build:api": "npm run build --workspace=@workspace/api-server",
+    "build:main": "esbuild src/main.ts --bundle --platform=node --target=node20 --format=cjs --outfile=dist/main.cjs --external:electron --external:embedded-postgres --external:pg --external:pg-native --external:tar",
+    "build:preload": "esbuild src/preload.ts --bundle --platform=node --target=node20 --format=cjs --outfile=dist/preload.cjs --external:electron",
+    "build": "npm run build:web && npm run build:api && npm run build:main && npm run build:preload && node ./build/copy-assets.mjs",
+    "dev": "npm run build && electron .",
+    "dist": "npm run build && electron-builder"
+  },
+  "dependencies": {
+    "electron-updater": "^6.8.9",
+    "embedded-postgres": "^18.4.0-beta.17",
+    "tar": "^7.5.22"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "@types/tar": "^6.1.13",
+    "electron": "^33.2.0",
+    "electron-builder": "^26.15.3",
+    "esbuild": "0.25.8",
+    "typescript": "~5.9.3"
+  },
+  "build": {
+    "asar": false,
+	"electronVersion": "33.4.11",
+    "appId": "com.bizyangu.app",
+    "productName": "BizYangu OS",
+    "directories": {
+      "output": "release",
+      "buildResources": "build"
+    },
+    "files": [
+      "dist/**/*",
+      "resources/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "resources/web",
+        "to": "web"
+      },
+      {
+        "from": "resources/api",
+        "to": "api"
+      },
+      {
+        "from": "resources/migrations",
+        "to": "migrations"
+      }
+    ],
+"asarUnpack": [
+  "**/node_modules/embedded-postgres/**/*",
+  "**/node_modules/@embedded-postgres/**/*"
+],
+    "mac": {
+      "category": "public.app-category.business",
+      "target": [
+        "dmg"
+      ]
+    },
+    "win": {
+      "target": [
+        "nsis"
+      ]
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "category": "Office"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
+  }
+}

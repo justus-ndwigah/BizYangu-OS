@@ -1,0 +1,19 @@
+{
+  "name": "@workspace/auth-web",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@workspace/api-client-react": "*"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.0",
+    "typescript": "~5.9.3"
+  },
+  "peerDependencies": {
+    "react": ">=18"
+  }
+}

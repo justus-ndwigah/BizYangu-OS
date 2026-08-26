@@ -1,0 +1,36 @@
+{
+  "name": "biashara-os",
+  "version": "1.0.0",
+  "license": "MIT",
+  "private": true,
+  "description": "BiasharaOS — local business management app for Kenyan dukas and kiosks (sales, stock, customers, debts, M-PESA, reports).",
+  "workspaces": [
+    "artifacts/*",
+    "lib/*",
+    "scripts",
+    "apps/*"
+  ],
+  "scripts": {
+    "typecheck:libs": "tsc --build",
+    "typecheck": "npm run typecheck:libs && npm run typecheck --workspace=@workspace/api-server --workspace=@workspace/biashara-os --if-present",
+    "build": "npm run typecheck && npm run build --workspace=@workspace/db --workspace=@workspace/api-server --workspace=@workspace/biashara-os --if-present",
+    "db:generate": "npm run generate --workspace=@workspace/db",
+    "db:migrate": "npm run migrate --workspace=@workspace/db",
+    "db:studio": "npm run studio --workspace=@workspace/db",
+    "dev:api": "npm run dev --workspace=@workspace/api-server",
+    "dev:web": "npm run dev --workspace=@workspace/biashara-os",
+    "desktop:dev": "npm run dev --workspace=@workspace/desktop",
+    "desktop:build": "npm run build --workspace=@workspace/desktop",
+    "desktop:dist": "npm run dist --workspace=@workspace/desktop",
+    "backup": "node scripts/src/backup.mjs",
+    "restore": "node scripts/src/restore.mjs"
+  },
+  "devDependencies": {
+    "electron-builder": "^26.15.3",
+    "prettier": "^3.9.6",
+    "typescript": "~5.9.3"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

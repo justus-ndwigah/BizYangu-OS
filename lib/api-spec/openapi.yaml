@@ -1,0 +1,1454 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 1.0.0
+  description: BiasharaOS API — POS and business management for Kenyan kiosk owners
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: auth
+    description: Local email/password authentication and first-run setup
+  - name: users
+    description: Staff user management (admin only)
+  - name: settings
+    description: Shop profile and app configuration
+  - name: products
+    description: Product inventory management
+  - name: sales
+    description: Sale recording and history
+  - name: customers
+    description: Customer and credit management
+  - name: debts
+    description: Customer debt tracking
+  - name: mpesa
+    description: M-PESA transactions
+  - name: reports
+    description: Business reports and analytics
+  - name: ai
+    description: AI assistant
+  - name: backup
+    description: Data export/import for backup and restore
+
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  # ── AUTH ──────────────────────────────────────────────────────────────
+  /auth/setup-status:
+    get:
+      operationId: getSetupStatus
+      tags: [auth]
+      summary: Whether the first-run setup wizard still needs to run
+      responses:
+        "200":
+          description: Setup status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SetupStatus"
+
+  /auth/setup:
+    post:
+      operationId: completeSetup
+      tags: [auth]
+      summary: One-time first-run setup — creates the shop profile and the first admin user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SetupInput"
+      responses:
+        "201":
+          description: Setup complete, session created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthUserEnvelope"
+        "409":
+          description: Setup already completed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+
+  /auth/login:
+    post:
+      operationId: login
+      tags: [auth]
+      summary: Log in with email and password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginInput"
+      responses:
+        "200":
+          description: Logged in
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthUserEnvelope"
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+
+  /auth/logout:
+    post:
+      operationId: logout
+      tags: [auth]
+      summary: Log out and destroy the session
+      parameters:
+        - $ref: "#/components/parameters/AuthorizationSessionHeader"
+        - $ref: "#/components/parameters/SessionCookie"
+      responses:
+        "200":
+          description: Logged out
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LogoutSuccess"
+
+  /auth/user:
+    get:
+      operationId: getCurrentAuthUser
+      tags: [auth]
+      summary: Get the currently authenticated user
+      parameters:
+        - $ref: "#/components/parameters/AuthorizationSessionHeader"
+        - $ref: "#/components/parameters/SessionCookie"
+      responses:
+        "200":
+          description: Auth status resolved successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthUserEnvelope"
+
+  /auth/change-password:
+    post:
+      operationId: changePassword
+      tags: [auth]
+      summary: Change the current user's password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChangePasswordInput"
+      responses:
+        "200":
+          description: Password changed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LogoutSuccess"
+        "401":
+          description: Current password incorrect
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+
+  # ── USERS (admin only) ───────────────────────────────────────────────
+  /users:
+    get:
+      operationId: listUsers
+      tags: [users]
+      summary: List all staff users
+      responses:
+        "200":
+          description: Users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AppUser"
+    post:
+      operationId: createUser
+      tags: [users]
+      summary: Create a staff user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateUserInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppUser"
+
+  /users/{id}:
+    patch:
+      operationId: updateUser
+      tags: [users]
+      summary: Update a staff user's role, status, name or password
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateUserInput"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppUser"
+    delete:
+      operationId: deactivateUser
+      tags: [users]
+      summary: Deactivate a staff user (soft delete — preserves sale history)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Deactivated
+
+  # ── SETTINGS ──────────────────────────────────────────────────────────
+  /settings:
+    get:
+      operationId: getSettings
+      tags: [settings]
+      summary: Get shop profile and app configuration
+      responses:
+        "200":
+          description: Settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ShopSettings"
+    patch:
+      operationId: updateSettings
+      tags: [settings]
+      summary: Update shop profile and app configuration (admin only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ShopSettingsUpdate"
+      responses:
+        "200":
+          description: Updated settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ShopSettings"
+
+  # ── PRODUCTS ──────────────────────────────────────────────────────────
+  /products:
+    get:
+      operationId: listProducts
+      tags: [products]
+      summary: List all products
+      responses:
+        "200":
+          description: Product list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Product"
+    post:
+      operationId: createProduct
+      tags: [products]
+      summary: Add a new product
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProductInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+
+  /products/{id}:
+    get:
+      operationId: getProduct
+      tags: [products]
+      summary: Get a product
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "200":
+          description: Product
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+        "404":
+          description: Not found
+    patch:
+      operationId: updateProduct
+      tags: [products]
+      summary: Update a product
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProductUpdate"
+      responses:
+        "200":
+          description: Updated product
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+    delete:
+      operationId: deleteProduct
+      tags: [products]
+      summary: Delete a product
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "204":
+          description: Deleted
+
+  /products/low-stock:
+    get:
+      operationId: listLowStockProducts
+      tags: [products]
+      summary: Products at or below their low-stock threshold
+      responses:
+        "200":
+          description: Low stock products
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Product"
+
+  # ── SALES ──────────────────────────────────────────────────────────────
+  /sales:
+    get:
+      operationId: listSales
+      tags: [sales]
+      summary: List all sales
+      parameters:
+        - name: date
+          in: query
+          required: false
+          schema:
+            type: string
+            description: Filter by date (YYYY-MM-DD)
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: number
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: number
+      responses:
+        "200":
+          description: Sales list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Sale"
+    post:
+      operationId: createSale
+      tags: [sales]
+      summary: Record a sale (atomic — validates stock and updates it, records debt if on credit)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SaleInput"
+      responses:
+        "201":
+          description: Created sale
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Sale"
+        "409":
+          description: Not enough stock for one or more items
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+
+  /sales/stats:
+    get:
+      operationId: getSalesStats
+      tags: [sales]
+      summary: Summary stats — today revenue, profit, month revenue, debt totals
+      responses:
+        "200":
+          description: Stats summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SalesStats"
+
+  /sales/{id}:
+    get:
+      operationId: getSale
+      tags: [sales]
+      summary: Get a single sale with items
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "200":
+          description: Sale
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Sale"
+        "404":
+          description: Not found
+
+  # ── CUSTOMERS ──────────────────────────────────────────────────────────
+  /customers:
+    get:
+      operationId: listCustomers
+      tags: [customers]
+      summary: List all customers
+      parameters:
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Customer list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Customer"
+    post:
+      operationId: createCustomer
+      tags: [customers]
+      summary: Add a customer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CustomerInput"
+      responses:
+        "201":
+          description: Created customer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Customer"
+
+  /customers/{id}:
+    get:
+      operationId: getCustomer
+      tags: [customers]
+      summary: Get a customer
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "200":
+          description: Customer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Customer"
+        "404":
+          description: Not found
+    patch:
+      operationId: updateCustomer
+      tags: [customers]
+      summary: Update a customer
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CustomerUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Customer"
+    delete:
+      operationId: deleteCustomer
+      tags: [customers]
+      summary: Delete a customer (refused if they have outstanding debt)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "204":
+          description: Deleted
+        "409":
+          description: Customer has outstanding debt
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+
+  /customers/{id}/debts:
+    get:
+      operationId: listCustomerDebts
+      tags: [debts]
+      summary: Get all debts for a customer
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "200":
+          description: Debts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Debt"
+    post:
+      operationId: createDebt
+      tags: [debts]
+      summary: Record a credit/debt for a customer
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DebtInput"
+      responses:
+        "201":
+          description: Debt created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Debt"
+
+  /debts/{debtId}/settle:
+    post:
+      operationId: settleDebt
+      tags: [debts]
+      summary: Mark a debt as settled
+      parameters:
+        - name: debtId
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "200":
+          description: Settled debt
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Debt"
+
+  /debts/{debtId}:
+    delete:
+      operationId: deleteDebt
+      tags: [debts]
+      summary: Delete an unsettled debt record
+      parameters:
+        - name: debtId
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "204":
+          description: Deleted
+
+  /debts/summary:
+    get:
+      operationId: getDebtsSummary
+      tags: [debts]
+      summary: Total outstanding debt and count of debtors
+      responses:
+        "200":
+          description: Debts summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DebtsSummary"
+
+  # ── M-PESA ──────────────────────────────────────────────────────────────
+  /mpesa/stk-push:
+    post:
+      operationId: initiateMpesaStkPush
+      tags: [mpesa]
+      summary: Initiate M-PESA STK push payment request (real Daraja call if configured, simulated otherwise)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MpesaStkPushInput"
+      responses:
+        "201":
+          description: STK push initiated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MpesaStkPushResponse"
+
+  /mpesa/transactions:
+    get:
+      operationId: listMpesaTransactions
+      tags: [mpesa]
+      summary: List all M-PESA transactions
+      responses:
+        "200":
+          description: Transactions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MpesaTransaction"
+
+  /mpesa/transactions/{id}:
+    get:
+      operationId: getMpesaTransaction
+      tags: [mpesa]
+      summary: Get status of a single M-PESA transaction
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "200":
+          description: Transaction
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MpesaTransaction"
+
+  /mpesa/summary:
+    get:
+      operationId: getMpesaSummary
+      tags: [mpesa]
+      summary: M-PESA summary — total confirmed, pending count, failed count
+      responses:
+        "200":
+          description: M-PESA summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MpesaSummary"
+
+  # ── REPORTS ──────────────────────────────────────────────────────────────
+  /reports/daily:
+    get:
+      operationId: getDailyReport
+      tags: [reports]
+      summary: Daily revenue and profit for the last N days
+      parameters:
+        - name: days
+          in: query
+          required: false
+          schema:
+            type: number
+            default: 14
+      responses:
+        "200":
+          description: Daily report data
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DailyReportEntry"
+
+  /reports/top-products:
+    get:
+      operationId: getTopProducts
+      tags: [reports]
+      summary: Top products by units sold
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: number
+            default: 5
+      responses:
+        "200":
+          description: Top products
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TopProduct"
+
+  /reports/category-breakdown:
+    get:
+      operationId: getCategoryBreakdown
+      tags: [reports]
+      summary: Revenue breakdown by product category
+      responses:
+        "200":
+          description: Category breakdown
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CategoryBreakdown"
+
+  # ── AI ASSISTANT ──────────────────────────────────────────────────────────
+  /ai/chat:
+    post:
+      operationId: aiChat
+      tags: [ai]
+      summary: Send message to AI business assistant
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AiChatInput"
+      responses:
+        "200":
+          description: AI response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AiReply"
+
+  # ── BACKUP ──────────────────────────────────────────────────────────────
+  /backup/export:
+    get:
+      operationId: exportBackup
+      tags: [backup]
+      summary: Download a full JSON snapshot of all business data (admin only)
+      responses:
+        "200":
+          description: Backup file
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BackupExport"
+
+  /backup/import:
+    post:
+      operationId: importBackup
+      tags: [backup]
+      summary: Replace all business data with a previously exported backup (admin only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BackupImportInput"
+      responses:
+        "200":
+          description: Restore complete
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LogoutSuccess"
+
+components:
+  parameters:
+    AuthorizationSessionHeader:
+      name: Authorization
+      in: header
+      required: false
+      description: Opaque session token — `Bearer <sid>`.
+      schema:
+        type: string
+    SessionCookie:
+      name: sid
+      in: cookie
+      required: false
+      description: Browser session cookie.
+      schema:
+        type: string
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required: [status]
+
+    # ── AUTH ────────────────────────────────────────────────────────────────
+    AuthUser:
+      type: object
+      required: [id, email, firstName, lastName, role, isActive]
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        role:
+          type: string
+          enum: [admin, cashier]
+        isActive:
+          type: boolean
+        profileImageUrl:
+          type: ["string", "null"]
+    AuthUserEnvelope:
+      type: object
+      required: [user]
+      properties:
+        user:
+          oneOf:
+            - $ref: "#/components/schemas/AuthUser"
+            - type: "null"
+    SetupStatus:
+      type: object
+      required: [needsSetup]
+      properties:
+        needsSetup:
+          type: boolean
+    SetupInput:
+      type: object
+      required: [shopName, firstName, lastName, email, password]
+      properties:
+        shopName:
+          type: string
+          minLength: 1
+        ownerName:
+          type: string
+        phone:
+          type: string
+        address:
+          type: string
+        currency:
+          type: string
+          default: KES
+        firstName:
+          type: string
+          minLength: 1
+        lastName:
+          type: string
+          minLength: 1
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 6
+    LoginInput:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 1
+    ChangePasswordInput:
+      type: object
+      required: [currentPassword, newPassword]
+      properties:
+        currentPassword:
+          type: string
+          minLength: 1
+        newPassword:
+          type: string
+          minLength: 6
+    LogoutSuccess:
+      type: object
+      required: [success]
+      properties:
+        success:
+          type: boolean
+    ErrorEnvelope:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string
+
+    # ── USERS ──────────────────────────────────────────────────────────────
+    AppUser:
+      type: object
+      required: [id, firstName, lastName, email, role, isActive, createdAt]
+      properties:
+        id:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+        role:
+          type: string
+          enum: [admin, cashier]
+        isActive:
+          type: boolean
+        profileImageUrl:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+    CreateUserInput:
+      type: object
+      required: [firstName, lastName, email, password]
+      properties:
+        firstName:
+          type: string
+          minLength: 1
+        lastName:
+          type: string
+          minLength: 1
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 6
+        role:
+          type: string
+          enum: [admin, cashier]
+          default: cashier
+    UpdateUserInput:
+      type: object
+      properties:
+        firstName:
+          type: string
+          minLength: 1
+        lastName:
+          type: string
+          minLength: 1
+        role:
+          type: string
+          enum: [admin, cashier]
+        isActive:
+          type: boolean
+        password:
+          type: string
+          minLength: 6
+
+    # ── SETTINGS ──────────────────────────────────────────────────────────
+    ShopSettings:
+      type: object
+      required: [id, shopName, currency, setupComplete]
+      properties:
+        id:
+          type: number
+        shopName:
+          type: string
+        ownerName:
+          type: ["string", "null"]
+        phone:
+          type: ["string", "null"]
+        address:
+          type: ["string", "null"]
+        currency:
+          type: string
+        receiptFooter:
+          type: ["string", "null"]
+        defaultLowStockThreshold:
+          type: number
+        mpesaShortcode:
+          type: ["string", "null"]
+        setupComplete:
+          type: boolean
+    ShopSettingsUpdate:
+      type: object
+      properties:
+        shopName:
+          type: string
+          minLength: 1
+        ownerName:
+          type: ["string", "null"]
+        phone:
+          type: ["string", "null"]
+        address:
+          type: ["string", "null"]
+        currency:
+          type: string
+        receiptFooter:
+          type: ["string", "null"]
+        defaultLowStockThreshold:
+          type: number
+        mpesaShortcode:
+          type: ["string", "null"]
+
+    # ── PRODUCT ──────────────────────────────────────────────────────────────
+    Product:
+      type: object
+      properties:
+        id:
+          type: number
+        name:
+          type: string
+        category:
+          type: ["string", "null"]
+        barcode:
+          type: ["string", "null"]
+        buyPrice:
+          type: number
+        sellPrice:
+          type: number
+        stock:
+          type: number
+        lowStockThreshold:
+          type: number
+        unit:
+          type: string
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+      required: [id, name, buyPrice, sellPrice, stock, lowStockThreshold, createdAt, updatedAt]
+
+    ProductInput:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+        category:
+          type: string
+        barcode:
+          type: string
+        buyPrice:
+          type: number
+        sellPrice:
+          type: number
+        stock:
+          type: number
+        lowStockThreshold:
+          type: number
+        unit:
+          type: string
+      required: [name, sellPrice]
+
+    ProductUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+        category:
+          type: string
+        barcode:
+          type: string
+        buyPrice:
+          type: number
+        sellPrice:
+          type: number
+        stock:
+          type: number
+        lowStockThreshold:
+          type: number
+        unit:
+          type: string
+
+    # ── SALE ──────────────────────────────────────────────────────────────
+    SaleItem:
+      type: object
+      properties:
+        productId:
+          type: number
+        name:
+          type: string
+        qty:
+          type: number
+        price:
+          type: number
+      required: [productId, name, qty, price]
+
+    Sale:
+      type: object
+      properties:
+        id:
+          type: number
+        receiptNumber:
+          type: string
+        total:
+          type: number
+        method:
+          type: string
+          enum: [Cash, M-PESA, Credit]
+        onCredit:
+          type: boolean
+        customerId:
+          type: ["number", "null"]
+        customerName:
+          type: ["string", "null"]
+        mpesaRef:
+          type: ["string", "null"]
+        mpesaReceipt:
+          type: ["string", "null"]
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/SaleItem"
+        createdAt:
+          type: string
+      required: [id, receiptNumber, total, method, onCredit, items, createdAt]
+
+    SaleInput:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/SaleItem"
+        total:
+          type: number
+        method:
+          type: string
+          enum: [Cash, M-PESA, Credit]
+        onCredit:
+          type: boolean
+        customerId:
+          type: ["number", "null"]
+        customerName:
+          type: ["string", "null"]
+        mpesaRef:
+          type: ["string", "null"]
+        mpesaReceipt:
+          type: ["string", "null"]
+      required: [items, total, method]
+
+    SalesStats:
+      type: object
+      properties:
+        todayRevenue:
+          type: number
+        todayProfit:
+          type: number
+        todaySalesCount:
+          type: number
+        monthRevenue:
+          type: number
+        monthProfit:
+          type: number
+        totalOutstandingDebt:
+          type: number
+        lowStockCount:
+          type: number
+      required: [todayRevenue, todayProfit, todaySalesCount, monthRevenue, monthProfit, totalOutstandingDebt, lowStockCount]
+
+    # ── CUSTOMER ──────────────────────────────────────────────────────────────
+    Customer:
+      type: object
+      properties:
+        id:
+          type: number
+        name:
+          type: string
+        phone:
+          type: ["string", "null"]
+        totalDebt:
+          type: number
+        createdAt:
+          type: string
+      required: [id, name, totalDebt, createdAt]
+
+    CustomerInput:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+        phone:
+          type: string
+      required: [name]
+
+    CustomerUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+        phone:
+          type: string
+
+    # ── DEBT ──────────────────────────────────────────────────────────────
+    Debt:
+      type: object
+      properties:
+        id:
+          type: number
+        customerId:
+          type: number
+        customerName:
+          type: string
+        amount:
+          type: number
+        note:
+          type: ["string", "null"]
+        settled:
+          type: boolean
+        settledAt:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+      required: [id, customerId, customerName, amount, settled, createdAt]
+
+    DebtInput:
+      type: object
+      properties:
+        amount:
+          type: number
+        note:
+          type: string
+      required: [amount]
+
+    DebtsSummary:
+      type: object
+      properties:
+        totalOutstanding:
+          type: number
+        debtorCount:
+          type: number
+        unsettledCount:
+          type: number
+      required: [totalOutstanding, debtorCount, unsettledCount]
+
+    # ── M-PESA ──────────────────────────────────────────────────────────────
+    MpesaStkPushInput:
+      type: object
+      properties:
+        phone:
+          type: string
+        amount:
+          type: number
+        saleId:
+          type: ["number", "null"]
+      required: [phone, amount]
+
+    MpesaStkPushResponse:
+      type: object
+      properties:
+        checkoutRequestId:
+          type: string
+        message:
+          type: string
+        transactionId:
+          type: number
+      required: [checkoutRequestId, message, transactionId]
+
+    MpesaTransaction:
+      type: object
+      properties:
+        id:
+          type: number
+        phone:
+          type: string
+        amount:
+          type: number
+        status:
+          type: string
+          enum: [pending, success, failed]
+        description:
+          type: ["string", "null"]
+        checkoutRequestId:
+          type: ["string", "null"]
+        mpesaReceipt:
+          type: ["string", "null"]
+        failureReason:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+        confirmedAt:
+          type: ["string", "null"]
+      required: [id, phone, amount, status, createdAt]
+
+    MpesaSummary:
+      type: object
+      properties:
+        totalConfirmed:
+          type: number
+        pendingCount:
+          type: number
+        failedCount:
+          type: number
+        confirmedCount:
+          type: number
+        configured:
+          type: boolean
+      required: [totalConfirmed, pendingCount, failedCount, confirmedCount]
+
+    # ── REPORTS ──────────────────────────────────────────────────────────────
+    DailyReportEntry:
+      type: object
+      properties:
+        date:
+          type: string
+        revenue:
+          type: number
+        profit:
+          type: number
+        salesCount:
+          type: number
+      required: [date, revenue, profit, salesCount]
+
+    TopProduct:
+      type: object
+      properties:
+        productId:
+          type: number
+        productName:
+          type: string
+        unitsSold:
+          type: number
+        revenue:
+          type: number
+      required: [productId, productName, unitsSold, revenue]
+
+    CategoryBreakdown:
+      type: object
+      properties:
+        category:
+          type: string
+        revenue:
+          type: number
+        unitsSold:
+          type: number
+      required: [category, revenue, unitsSold]
+
+    # ── AI ──────────────────────────────────────────────────────────────
+    AiMessage:
+      type: object
+      properties:
+        role:
+          type: string
+          enum: [user, assistant]
+        content:
+          type: string
+      required: [role, content]
+
+    AiChatInput:
+      type: object
+      properties:
+        messages:
+          type: array
+          items:
+            $ref: "#/components/schemas/AiMessage"
+        context:
+          type: string
+      required: [messages]
+
+    AiReply:
+      type: object
+      properties:
+        reply:
+          type: string
+      required: [reply]
+
+    # ── BACKUP ──────────────────────────────────────────────────────────────
+    BackupExport:
+      type: object
+      required: [version, exportedAt, data]
+      properties:
+        version:
+          type: number
+        exportedAt:
+          type: string
+        data:
+          type: object
+
+    BackupImportInput:
+      type: object
+      required: [confirm, data]
+      properties:
+        confirm:
+          type: boolean
+          const: true
+        data:
+          type: object
