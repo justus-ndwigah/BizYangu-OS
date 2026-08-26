@@ -4,6 +4,10 @@
 
 Built for shop owners who need real POS software but can't rely on constant internet access, expensive cloud subscriptions, or a separate database server to install and maintain.
 
+📥 **[Download the latest Windows installer](https://github.com/justus-ndwigah/BizYangu-OS/releases/latest)**
+
+> **Note:** the installer isn't code-signed with a paid certificate, so Windows SmartScreen may show a "Windows protected your PC" warning on first run. Click **"More info" → "Run anyway"** to proceed — this is expected for an unsigned indie build, not a sign of a problem with the app.
+
 ---
 
 ## Why this exists
