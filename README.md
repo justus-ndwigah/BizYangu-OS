@@ -101,9 +101,30 @@ npm run desktop:dist
 See `.env.example` for optional environment variables (M-PESA credentials, AI API key) — the app runs fully functional without any of them, with M-PESA and AI features simply inactive until configured.
 
 ## Screenshots
+**DASHBOARD**
+![Dashboard](docs/screenshots/dashboard.png)
 
-*(add screenshots here — Dashboard, Inventory, Record Sale, M-PESA, AI Advisor)*
+**SALES**
+![record-sales](docs/screenshots/record-sales.png)
 
+**INVENTORY**
+![inventory](docs/screenshots/inventory.png)
+
+**CUSTOMERS & DEPTS**
+![customers](docs/screenshots/customers.png)
+
+**MPESA**
+![mpesa](docs/screenshots/mpesa.png)
+
+**REPORTS**
+![reports](docs/screenshots/reports.png)
+![report](docs/screenshots/report.png)
+
+**AI ADVISOR**
+![AI Advisor](docs/screenshots/AI-advisor.png)
+
+**MULTI-USER**
+![settings](docs/screenshots/settings.png)
 ## License
 
 MIT
