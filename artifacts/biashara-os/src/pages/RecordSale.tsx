@@ -94,8 +94,9 @@ export function RecordSale() {
       setMethod('Cash');
       setCustomerId('');
       setMpesaRef('');
-    } catch {
-      toast({ title: 'Failed to record sale', variant: 'destructive' });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Please check your details and try again.';
+      toast({ title: 'Failed to record sale', description: message, variant: 'destructive' });
     }
   }
 
