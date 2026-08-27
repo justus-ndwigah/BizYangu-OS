@@ -138,6 +138,9 @@ export function Shell({ children }: { children: React.ReactNode }) {
             <LogOut className="mr-2 w-4 h-4" />
             Close Shop
           </Button>
+          <p className="mt-3 text-center text-[11px] text-sidebar-foreground/40">
+            Built by Jaz Tech
+          </p>
         </div>
       </aside>
 

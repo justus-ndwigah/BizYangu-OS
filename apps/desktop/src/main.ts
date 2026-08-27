@@ -1,4 +1,4 @@
-// BizYangu OS desktop shell
+// BizYangu OS desktop shell (formerly BizYangu OS).
 //
 // On first launch this:
 //   1. Initializes a private Postgres cluster inside the app's data
@@ -295,7 +295,17 @@ function buildMenu() {
     {
       label: "BizYangu OS",
       submenu: [
-        { role: "about" },
+        {
+          label: "About BizYangu OS",
+          click: () => {
+            dialog.showMessageBox({
+              type: "info",
+              title: "About BizYangu OS",
+              message: "BizYangu OS",
+              detail: `Version ${app.getVersion()}\n\nOffline-first business management for Kenyan dukas.\n\nDeveloped by Jaz Tech\nhttps://github.com/justus-ndwigah/BizYangu-OS`,
+            });
+          },
+        },
         { type: "separator" },
         { role: "quit" },
       ],

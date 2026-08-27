@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "private": true,
   "description": "BiasharaOS desktop app — sales, stock, customers, debts, M-PESA and reports for Kenyan dukas, running fully offline on your computer.",
-  "author": "BiasharaOS",
+  "author": "Jaz Tech",
   "license": "MIT",
   "main": "dist/main.cjs",
   "type": "commonjs",
