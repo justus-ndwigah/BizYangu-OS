@@ -264,3 +264,25 @@
     inset: -1px;
   }
 }
+
+/* Printing a receipt (or saving it as PDF via the OS print dialog): hide
+   everything on the page except the receipt itself. body > * hides
+   top-level app chrome (sidebar/topbar), and the receipt's own print:block
+   override on #receipt-print-area re-shows just that node - it can sit
+   nested inside a hidden ancestor and still render, since visibility isn't
+   what's controlling it here. */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #receipt-print-area,
+  #receipt-print-area * {
+    visibility: visible;
+  }
+  #receipt-print-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+  }
+}
+

@@ -1,14 +1,15 @@
 import { useState } from 'react';
-import { Search, ShoppingCart, Plus, Minus, Trash2, CheckCircle2, Smartphone } from 'lucide-react';
+import { Search, ShoppingCart, Plus, Minus, Trash2, CheckCircle2, Smartphone, Printer } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
 import {
   useListProducts,
   useListCustomers,
   useCreateSale,
+  useGetSettings,
   getListSalesQueryKey,
   getGetSalesStatsQueryKey,
 } from '@workspace/api-client-react';
-import type { Product, Customer } from '@workspace/api-client-react';
+import type { Product, Customer, Sale } from '@workspace/api-client-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -16,6 +17,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
+import { Receipt } from '@/components/Receipt';
 
 interface CartItem {
   product: Product;
@@ -32,6 +34,7 @@ export function RecordSale() {
   const { toast } = useToast();
   const { data: products, isLoading: productsLoading } = useListProducts();
   const { data: customers } = useListCustomers();
+  const { data: settings } = useGetSettings();
   const createSale = useCreateSale();
 
   const [search, setSearch] = useState('');
@@ -39,7 +42,7 @@ export function RecordSale() {
   const [method, setMethod] = useState<PayMethod>('Cash');
   const [customerId, setCustomerId] = useState<string>('');
   const [mpesaRef, setMpesaRef] = useState('');
-  const [success, setSuccess] = useState<string | null>(null);
+  const [completedSale, setCompletedSale] = useState<Sale | null>(null);
 
   const filtered = (products ?? []).filter(p =>
     p.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -86,7 +89,7 @@ export function RecordSale() {
       });
       await qc.invalidateQueries({ queryKey: getListSalesQueryKey() });
       await qc.invalidateQueries({ queryKey: getGetSalesStatsQueryKey() });
-      setSuccess(sale.receiptNumber);
+      setCompletedSale(sale);
       setCart([]);
       setMethod('Cash');
       setCustomerId('');
@@ -96,19 +99,31 @@ export function RecordSale() {
     }
   }
 
-  if (success) {
+  if (completedSale) {
     return (
       <div className="p-4 md:p-8 max-w-2xl mx-auto">
-        <Card className="rounded-2xl border-border/60 shadow-sm text-center p-12">
+        <Card className="rounded-2xl border-border/60 shadow-sm text-center p-12 print:hidden">
           <div className="w-20 h-20 bg-secondary/10 rounded-full flex items-center justify-center mx-auto mb-6">
             <CheckCircle2 className="w-10 h-10 text-secondary" />
           </div>
           <h2 className="text-2xl font-extrabold text-foreground">Sale Recorded!</h2>
-          <p className="text-muted-foreground mt-2 font-medium">Receipt: <span className="font-mono font-bold text-foreground">{success}</span></p>
-          <Button className="mt-8 rounded-xl h-12 px-8 text-base" onClick={() => setSuccess(null)}>
-            New Sale
-          </Button>
+          <p className="text-muted-foreground mt-2 font-medium">Receipt: <span className="font-mono font-bold text-foreground">{completedSale.receiptNumber}</span></p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center mt-8">
+            <Button variant="outline" className="rounded-xl h-12 px-8 text-base" onClick={() => window.print()}>
+              <Printer className="mr-2 w-4 h-4" />
+              Print / Save Receipt (PDF)
+            </Button>
+            <Button className="rounded-xl h-12 px-8 text-base" onClick={() => setCompletedSale(null)}>
+              New Sale
+            </Button>
+          </div>
         </Card>
+
+        {/* Hidden on screen (see .receipt-print-area / @media print rules),
+            only rendered so window.print() has something to output. */}
+        <div className="hidden print:block">
+          <Receipt sale={completedSale} settings={settings} />
+        </div>
       </div>
     );
   }
