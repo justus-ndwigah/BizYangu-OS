@@ -7,19 +7,21 @@ import {
   boolean,
   timestamp,
   pgEnum,
+  varchar,
 } from "drizzle-orm/pg-core";
+import { usersTable } from "./auth";
 
 // ── SHOP SETTINGS (single row, id = 1) ───────────────────────────────────
 // Holds the business profile used on receipts/reports and app-wide defaults.
 // Populated by the first-run setup wizard.
 export const shopSettings = pgTable("shop_settings", {
   id: integer("id").primaryKey().default(1),
-  shopName: text("shop_name").notNull().default("My Duka"),
+  shopName: text("shop_name").notNull().default("My Shop"),
   ownerName: text("owner_name"),
   phone: text("phone"),
   address: text("address"),
   currency: text("currency").notNull().default("KES"),
-  receiptFooter: text("receipt_footer").default("Asante kwa kununua!"),
+  receiptFooter: text("receipt_footer").default("Thank you for shopping with us!"),
   defaultLowStockThreshold: integer("default_low_stock_threshold")
     .notNull()
     .default(5),
@@ -73,6 +75,12 @@ export const sales = pgTable("sales", {
   customerName: text("customer_name"),
   mpesaRef: text("mpesa_ref"),
   mpesaReceipt: text("mpesa_receipt"),
+  // Who served this sale. Denormalized (servedByName stored alongside the
+  // FK) for the same reason customerName is: a receipt is a historical
+  // record and shouldn't change retroactively if the cashier's account is
+  // later renamed or deactivated.
+  servedById: varchar("served_by_id").references(() => usersTable.id, { onDelete: "set null" }),
+  servedByName: text("served_by_name"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

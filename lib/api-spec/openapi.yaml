@@ -1172,6 +1172,10 @@ components:
           type: ["string", "null"]
         mpesaReceipt:
           type: ["string", "null"]
+        servedById:
+          type: ["string", "null"]
+        servedByName:
+          type: ["string", "null"]
         items:
           type: array
           items:

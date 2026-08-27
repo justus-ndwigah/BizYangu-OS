@@ -35,6 +35,8 @@ function mapSale(sale: SaleRow, items: SaleItemRow[]) {
     customerName: sale.customerName,
     mpesaRef: sale.mpesaRef,
     mpesaReceipt: sale.mpesaReceipt,
+    servedById: sale.servedById,
+    servedByName: sale.servedByName,
     items: items.map(mapSaleItem),
     createdAt: sale.createdAt,
   };
@@ -195,6 +197,8 @@ router.post(
           customerName: body.customerName ?? null,
           mpesaRef: body.mpesaRef ?? null,
           mpesaReceipt: body.mpesaReceipt ?? null,
+          servedById: req.user?.id ?? null,
+          servedByName: req.user ? `${req.user.firstName} ${req.user.lastName}`.trim() : null,
         })
         .returning();
 

@@ -44,6 +44,12 @@ export function Receipt({ sale, settings }: ReceiptProps) {
           <span>{sale.customerName}</span>
         </div>
       )}
+      {sale.servedByName && (
+        <div className="flex justify-between">
+          <span>Served by:</span>
+          <span>{sale.servedByName}</span>
+        </div>
+      )}
 
       <div className="border-t border-dashed border-black/40 my-2" />
 
@@ -87,7 +93,7 @@ export function Receipt({ sale, settings }: ReceiptProps) {
 
       <div className="border-t border-dashed border-black/40 my-2" />
 
-      <p className="text-center mt-3">{settings?.receiptFooter || 'Thank you for your business!'}</p>
+      <p className="text-center mt-3">{settings?.receiptFooter || 'Thank you for Shopping with uss!'}</p>
       <p className="text-center text-[10px] text-black/50 mt-2">Powered by BizYangu OS</p>
     </div>
   );
