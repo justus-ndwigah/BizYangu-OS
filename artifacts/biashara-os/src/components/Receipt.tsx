@@ -21,7 +21,7 @@ export function Receipt({ sale, settings }: ReceiptProps) {
   const date = new Date(sale.createdAt);
 
   return (
-    <div id="receipt-print-area" className="receipt-print-area mx-auto w-[80mm] bg-white text-black p-4 font-mono text-xs leading-relaxed print:w-full print:p-0">
+    <div id="receipt-print-area" className="receipt-print-area mx-auto w-[80mm] bg-white text-black p-4 font-mono text-xs leading-relaxed">
       <div className="text-center mb-3">
         <p className="font-extrabold text-sm uppercase">{settings?.shopName ?? 'Shop'}</p>
         {settings?.address && <p>{settings.address}</p>}
@@ -93,7 +93,7 @@ export function Receipt({ sale, settings }: ReceiptProps) {
 
       <div className="border-t border-dashed border-black/40 my-2" />
 
-      <p className="text-center mt-3">{settings?.receiptFooter || 'Thank you for Shopping with uss!'}</p>
+      <p className="text-center mt-3">{settings?.receiptFooter || 'Thank you for your business!'}</p>
       <p className="text-center text-[10px] text-black/50 mt-2">Powered by BizYangu OS</p>
     </div>
   );
