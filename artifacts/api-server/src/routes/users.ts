@@ -26,12 +26,10 @@ const updateUserSchema = z.object({
   password: z.string().min(6).optional(),
 });
 
-// All user-management routes are admin-only.
-router.use(requireAdmin);
-
 // GET /users
 router.get(
   '/users',
+  requireAdmin,
   asyncHandler(async (_req: Request, res: Response) => {
     const rows = await db.select().from(usersTable).orderBy(usersTable.createdAt);
     res.json(rows.map(toPublicUser));
@@ -41,6 +39,7 @@ router.get(
 // POST /users — admin creates a staff account (e.g. a cashier).
 router.post(
   '/users',
+  requireAdmin,
   asyncHandler(async (req: Request, res: Response) => {
     const body = createUserSchema.parse(req.body);
     const passwordHash = await hashPassword(body.password);
@@ -61,6 +60,7 @@ router.post(
 // PATCH /users/:id
 router.patch(
   '/users/:id',
+  requireAdmin,
   asyncHandler(async (req: Request, res: Response) => {
     const id = String(req.params.id);
     const body = updateUserSchema.parse(req.body);
@@ -88,6 +88,7 @@ router.patch(
 // DELETE /users/:id — deactivates rather than hard-deletes, to preserve sale history integrity.
 router.delete(
   '/users/:id',
+  requireAdmin,
   asyncHandler(async (req: Request, res: Response) => {
     const id = String(req.params.id);
     if (id === req.user!.id) {
