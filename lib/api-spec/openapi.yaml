@@ -1117,7 +1117,7 @@ components:
         category:
           type: string
         barcode:
-          type: string
+          type: ["string", "null"]
         buyPrice:
           type: number
         sellPrice:
@@ -1139,7 +1139,7 @@ components:
         category:
           type: string
         barcode:
-          type: string
+          type: ["string", "null"]
         buyPrice:
           type: number
         sellPrice:

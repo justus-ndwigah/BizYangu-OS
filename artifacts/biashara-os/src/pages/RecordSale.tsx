@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Search, ShoppingCart, Plus, Minus, Trash2, CheckCircle2, Smartphone, Printer } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
 import {
@@ -43,11 +43,50 @@ export function RecordSale() {
   const [customerId, setCustomerId] = useState<string>('');
   const [mpesaRef, setMpesaRef] = useState('');
   const [completedSale, setCompletedSale] = useState<Sale | null>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   const filtered = (products ?? []).filter(p =>
     p.name.toLowerCase().includes(search.toLowerCase()) ||
     (p.category ?? '').toLowerCase().includes(search.toLowerCase())
   );
+
+  // Auto-focus the search box on load so a barcode scan works immediately -
+  // USB barcode scanners act as a keyboard, "typing" the code into whatever
+  // currently has focus, then sending Enter.
+  useEffect(() => {
+    searchInputRef.current?.focus();
+  }, []);
+
+  function handleSearchKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key !== 'Enter') return;
+    const code = search.trim();
+    if (!code) return;
+
+    // A scanned barcode should match a product's barcode field exactly.
+    const barcodeMatch = (products ?? []).find(
+      (p) => p.barcode && p.barcode.trim().toLowerCase() === code.toLowerCase(),
+    );
+    if (barcodeMatch) {
+      if (barcodeMatch.stock <= 0) {
+        toast({ title: 'Out of stock', description: `${barcodeMatch.name} has no stock left.`, variant: 'destructive' });
+      } else {
+        addToCart(barcodeMatch);
+      }
+      setSearch('');
+      return;
+    }
+
+    // Not a recognized barcode - if typing narrowed it to exactly one
+    // product by name, Enter adds that one too (convenient for keyboard-only
+    // use, not just scanners).
+    if (filtered.length === 1) {
+      addToCart(filtered[0]);
+      setSearch('');
+      return;
+    }
+
+    toast({ title: 'No matching product', description: `Nothing found for "${code}".`, variant: 'destructive' });
+  }
 
   function addToCart(product: Product) {
     setCart(prev => {
@@ -55,6 +94,7 @@ export function RecordSale() {
       if (existing) return prev.map(i => i.product.id === product.id ? { ...i, qty: i.qty + 1 } : i);
       return [...prev, { product, qty: 1 }];
     });
+    searchInputRef.current?.focus();
   }
 
   function setQty(productId: number, qty: number) {
@@ -141,7 +181,14 @@ export function RecordSale() {
         <div className="lg:col-span-2 space-y-4">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input placeholder="Search products…" className="pl-9 rounded-xl" value={search} onChange={e => setSearch(e.target.value)} />
+            <Input
+              ref={searchInputRef}
+              placeholder="Search or scan barcode…"
+              className="pl-9 rounded-xl"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              onKeyDown={handleSearchKeyDown}
+            />
           </div>
 
           {productsLoading ? (

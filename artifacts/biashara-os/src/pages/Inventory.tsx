@@ -24,6 +24,7 @@ const CATEGORIES = ['Grains', 'Sugar & Tea', 'Cooking Oils', 'Dairy', 'Baked Goo
 interface ProductForm {
   name: string;
   category: string;
+  barcode: string;
   buyPrice: string;
   sellPrice: string;
   stock: string;
@@ -31,7 +32,7 @@ interface ProductForm {
   unit: string;
 }
 
-const emptyForm: ProductForm = { name: '', category: 'General', buyPrice: '', sellPrice: '', stock: '0', lowStockThreshold: '5', unit: 'pcs' };
+const emptyForm: ProductForm = { name: '', category: 'General', barcode: '', buyPrice: '', sellPrice: '', stock: '0', lowStockThreshold: '5', unit: 'pcs' };
 
 const fmt = (n?: number) => new Intl.NumberFormat('en-KE', { style: 'currency', currency: 'KES', minimumFractionDigits: 0 }).format(n ?? 0);
 
@@ -66,7 +67,7 @@ export function Inventory() {
 
   function openEdit(p: Product) {
     setEditing(p);
-    setForm({ name: p.name, category: p.category ?? 'General', buyPrice: String(p.buyPrice), sellPrice: String(p.sellPrice), stock: String(p.stock), lowStockThreshold: String(p.lowStockThreshold), unit: (p as unknown as { unit?: string }).unit ?? 'pcs' });
+    setForm({ name: p.name, category: p.category ?? 'General', barcode: p.barcode ?? '', buyPrice: String(p.buyPrice), sellPrice: String(p.sellPrice), stock: String(p.stock), lowStockThreshold: String(p.lowStockThreshold), unit: (p as unknown as { unit?: string }).unit ?? 'pcs' });
     setDialogOpen(true);
   }
 
@@ -74,6 +75,7 @@ export function Inventory() {
     const payload = {
       name: form.name,
       category: form.category,
+      barcode: form.barcode.trim() || null,
       buyPrice: Number(form.buyPrice),
       sellPrice: Number(form.sellPrice),
       stock: Number(form.stock),
@@ -214,6 +216,16 @@ export function Inventory() {
             <div className="grid gap-1.5">
               <Label>Product Name</Label>
               <Input className="rounded-xl" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="e.g. Unga Jogoo 2kg" />
+            </div>
+            <div className="grid gap-1.5">
+              <Label>Barcode (optional)</Label>
+              <Input
+                className="rounded-xl font-mono"
+                value={form.barcode}
+                onChange={e => setForm(f => ({ ...f, barcode: e.target.value }))}
+                placeholder="Scan or type barcode…"
+              />
+              <p className="text-xs text-muted-foreground">Click into this field and scan with a USB barcode scanner to fill it automatically.</p>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="grid gap-1.5">
