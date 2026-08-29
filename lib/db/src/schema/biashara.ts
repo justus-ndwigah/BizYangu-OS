@@ -27,8 +27,8 @@ export const shopSettings = pgTable("shop_settings", {
     .default(5),
   mpesaShortcode: text("mpesa_shortcode"),
   setupComplete: boolean("setup_complete").notNull().default(false),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
 // ── PRODUCTS ───────────────────────────────────────────────────────────────
@@ -42,8 +42,8 @@ export const products = pgTable("products", {
   stock: integer("stock").notNull().default(0),
   lowStockThreshold: integer("low_stock_threshold").notNull().default(5),
   unit: text("unit").notNull().default("pcs"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
 // ── CUSTOMERS ─────────────────────────────────────────────────────────────
@@ -54,7 +54,7 @@ export const customers = pgTable("customers", {
   totalDebt: numeric("total_debt", { precision: 12, scale: 2 })
     .notNull()
     .default("0"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
 // ── PAYMENT METHOD ENUM ───────────────────────────────────────────────────
@@ -81,7 +81,7 @@ export const sales = pgTable("sales", {
   // later renamed or deactivated.
   servedById: varchar("served_by_id").references(() => usersTable.id, { onDelete: "set null" }),
   servedByName: text("served_by_name"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
 // ── SALE ITEMS ────────────────────────────────────────────────────────────
@@ -103,9 +103,9 @@ export const debts = pgTable("debts", {
   amount: numeric("amount", { precision: 12, scale: 2 }).notNull(),
   description: text("description"),
   settled: boolean("settled").notNull().default(false),
-  settledAt: timestamp("settled_at"),
+  settledAt: timestamp("settled_at", { withTimezone: true }),
   saleId: integer("sale_id").references(() => sales.id, { onDelete: "set null" }),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
 // ── MPESA TRANSACTIONS ────────────────────────────────────────────────────
@@ -124,8 +124,8 @@ export const mpesaTransactions = pgTable("mpesa_transactions", {
   mpesaReceiptNumber: text("mpesa_receipt_number"),
   failureReason: text("failure_reason"),
   saleId: integer("sale_id").references(() => sales.id, { onDelete: "set null" }),
-  confirmedAt: timestamp("confirmed_at"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+  confirmedAt: timestamp("confirmed_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
 // ── AUDIT LOGS ────────────────────────────────────────────────────────────
@@ -143,5 +143,5 @@ export const auditLogs = pgTable("audit_logs", {
   entityType: text("entity_type").notNull(), // e.g. "product", "sale", "user", "debt"
   entityId: text("entity_id"),
   summary: text("summary").notNull(), // short human-readable description for the activity log UI
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
