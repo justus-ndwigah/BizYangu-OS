@@ -142,7 +142,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
             Close Shop
           </Button>
           <p className="mt-3 text-center text-[11px] text-sidebar-foreground/40">
-            Built by Justus Ndwiga
+            Built by Jaz Tech
           </p>
         </div>
       </aside>
