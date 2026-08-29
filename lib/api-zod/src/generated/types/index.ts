@@ -12,6 +12,7 @@ export * from './aiMessageRole';
 export * from './aiReply';
 export * from './appUser';
 export * from './appUserRole';
+export * from './auditLogEntry';
 export * from './authorizationSessionHeaderParameter';
 export * from './authUser';
 export * from './authUserEnvelope';

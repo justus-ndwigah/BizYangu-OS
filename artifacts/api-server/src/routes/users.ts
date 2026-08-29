@@ -7,6 +7,7 @@ import { asyncHandler } from '../lib/asyncHandler';
 import { hashPassword, toPublicUser } from '../lib/auth';
 import { requireAdmin } from '../middlewares/authMiddleware';
 import { HttpError } from '../middlewares/errorHandler';
+import { logAudit } from '../lib/audit';
 
 const router: IRouter = Router();
 
@@ -54,6 +55,13 @@ router.post(
       })
       .returning();
     res.status(201).json(toPublicUser(user));
+    logAudit({
+      req,
+      action: 'user.created',
+      entityType: 'user',
+      entityId: user.id,
+      summary: `Added staff account "${user.firstName} ${user.lastName}" (${user.role})`,
+    });
   }),
 );
 
@@ -82,6 +90,20 @@ router.patch(
     const [row] = await db.update(usersTable).set(updates).where(eq(usersTable.id, id)).returning();
     if (!row) throw new HttpError(404, 'User not found');
     res.json(toPublicUser(row));
+
+    const changes: string[] = [];
+    if (body.role !== undefined) changes.push(`role → ${body.role}`);
+    if (body.isActive !== undefined) changes.push(body.isActive ? 'reactivated' : 'deactivated');
+    if (body.password !== undefined) changes.push('password reset');
+    if (changes.length > 0) {
+      logAudit({
+        req,
+        action: 'user.updated',
+        entityType: 'user',
+        entityId: row.id,
+        summary: `Updated staff account "${row.firstName} ${row.lastName}" (${changes.join(', ')})`,
+      });
+    }
   }),
 );
 
@@ -101,6 +123,13 @@ router.delete(
       .returning();
     if (!row) throw new HttpError(404, 'User not found');
     res.status(204).send();
+    logAudit({
+      req,
+      action: 'user.deactivated',
+      entityType: 'user',
+      entityId: row.id,
+      summary: `Removed staff account "${row.firstName} ${row.lastName}"`,
+    });
   }),
 );
 

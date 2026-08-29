@@ -429,6 +429,8 @@ export const ListSalesResponseItem = zod.object({
   "customerName": zod.string().nullish(),
   "mpesaRef": zod.string().nullish(),
   "mpesaReceipt": zod.string().nullish(),
+  "servedById": zod.string().nullish(),
+  "servedByName": zod.string().nullish(),
   "items": zod.array(zod.object({
   "productId": zod.number(),
   "name": zod.string(),
@@ -469,6 +471,8 @@ export const CreateSaleResponse = zod.object({
   "customerName": zod.string().nullish(),
   "mpesaRef": zod.string().nullish(),
   "mpesaReceipt": zod.string().nullish(),
+  "servedById": zod.string().nullish(),
+  "servedByName": zod.string().nullish(),
   "items": zod.array(zod.object({
   "productId": zod.number(),
   "name": zod.string(),
@@ -510,6 +514,8 @@ export const GetSaleResponse = zod.object({
   "customerName": zod.string().nullish(),
   "mpesaRef": zod.string().nullish(),
   "mpesaReceipt": zod.string().nullish(),
+  "servedById": zod.string().nullish(),
+  "servedByName": zod.string().nullish(),
   "items": zod.array(zod.object({
   "productId": zod.number(),
   "name": zod.string(),
@@ -755,6 +761,22 @@ export const GetMpesaSummaryResponse = zod.object({
   "confirmedCount": zod.number(),
   "configured": zod.boolean().optional()
 })
+
+
+/**
+ * @summary Recent staff activity (admin only)
+ */
+export const ListAuditLogsResponseItem = zod.object({
+  "id": zod.number(),
+  "userId": zod.string().nullish(),
+  "userName": zod.string().nullish(),
+  "action": zod.string(),
+  "entityType": zod.string(),
+  "entityId": zod.string().nullish(),
+  "summary": zod.string(),
+  "createdAt": zod.string()
+})
+export const ListAuditLogsResponse = zod.array(ListAuditLogsResponseItem)
 
 
 /**

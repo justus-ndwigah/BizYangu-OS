@@ -17,6 +17,7 @@ import { Reports } from '@/pages/Reports';
 import { Mpesa } from '@/pages/Mpesa';
 import { AiChat } from '@/pages/AiChat';
 import { Settings } from '@/pages/Settings';
+import { ActivityLog } from '@/pages/ActivityLog';
 
 const queryClient = new QueryClient();
 
@@ -61,6 +62,7 @@ function ProtectedRouter() {
         <Route path="/mpesa" component={Mpesa} />
         <Route path="/ai-chat" component={AiChat} />
         <Route path="/settings" component={Settings} />
+        <Route path="/activity-log" component={ActivityLog} />
         <Route component={NotFound} />
       </Switch>
     </Shell>

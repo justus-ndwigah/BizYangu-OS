@@ -9,6 +9,7 @@ import customersRouter from "./customers";
 import debtsRouter from "./debts";
 import mpesaRouter, { mpesaPublicRouter } from "./mpesa";
 import reportsRouter from "./reports";
+import auditRouter from "./audit";
 import aiRouter from "./ai";
 import backupRouter from "./backup";
 import { requireAuth } from "../middlewares/authMiddleware";
@@ -32,6 +33,7 @@ router.use(customersRouter);
 router.use(debtsRouter);
 router.use(mpesaRouter);
 router.use(reportsRouter);
+router.use(auditRouter);
 router.use(aiRouter);
 router.use(backupRouter);
 

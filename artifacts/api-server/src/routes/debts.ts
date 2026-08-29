@@ -7,6 +7,7 @@ import { z } from "zod";
 import { asyncHandler } from "../lib/asyncHandler";
 import { requireAuth } from "../middlewares/authMiddleware";
 import { HttpError } from "../middlewares/errorHandler";
+import { logAudit } from "../lib/audit";
 
 const router = Router();
 router.use(requireAuth);
@@ -71,6 +72,13 @@ router.post(
     });
 
     res.status(201).json(mapDebt(debt));
+    logAudit({
+      req,
+      action: "debt.created",
+      entityType: "debt",
+      entityId: debt.id,
+      summary: `Recorded debt of KES ${debt.amount} for ${debt.customerName}`,
+    });
   }),
 );
 
@@ -100,6 +108,13 @@ router.post(
     });
 
     res.json(mapDebt(updated));
+    logAudit({
+      req,
+      action: "debt.settled",
+      entityType: "debt",
+      entityId: updated.id,
+      summary: `Marked debt of KES ${updated.amount} for ${updated.customerName} as settled`,
+    });
   }),
 );
 

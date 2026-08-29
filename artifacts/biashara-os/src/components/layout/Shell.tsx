@@ -11,6 +11,7 @@ import {
   Wallet, 
   MessageSquare,
   Settings as SettingsIcon,
+  History,
   LogOut,
   Menu,
   X
@@ -23,6 +24,7 @@ interface NavItem {
   href: string;
   label: string;
   icon: React.ElementType;
+  adminOnly?: boolean;
 }
 
 const NAV_ITEMS: NavItem[] = [
@@ -32,6 +34,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: '/customers', label: 'Customers', icon: Users },
   { href: '/mpesa', label: 'M-PESA', icon: Wallet },
   { href: '/reports', label: 'Reports', icon: BarChart3 },
+  { href: '/activity-log', label: 'Activity Log', icon: History, adminOnly: true },
   { href: '/ai-chat', label: 'AI Advisor', icon: MessageSquare },
   { href: '/settings', label: 'Settings', icon: SettingsIcon },
 ];
@@ -93,7 +96,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
             Menu
           </div>
           
-          {NAV_ITEMS.map((item) => {
+          {NAV_ITEMS.filter((item) => !item.adminOnly || user?.role === 'admin').map((item) => {
             const isActive = location === item.href;
             return (
               <Link 
@@ -139,7 +142,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
             Close Shop
           </Button>
           <p className="mt-3 text-center text-[11px] text-sidebar-foreground/40">
-            Built by Jaz Tech
+            Built by Justus Ndwiga
           </p>
         </div>
       </aside>

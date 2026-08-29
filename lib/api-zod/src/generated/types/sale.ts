@@ -22,6 +22,10 @@ export interface Sale {
   mpesaRef?: string | null;
   /** @nullable */
   mpesaReceipt?: string | null;
+  /** @nullable */
+  servedById?: string | null;
+  /** @nullable */
+  servedByName?: string | null;
   items: SaleItem[];
   createdAt: string;
 }

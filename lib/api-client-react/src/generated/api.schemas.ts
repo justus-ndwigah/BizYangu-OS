@@ -237,6 +237,10 @@ export interface Sale {
   mpesaRef?: string | null;
   /** @nullable */
   mpesaReceipt?: string | null;
+  /** @nullable */
+  servedById?: string | null;
+  /** @nullable */
+  servedByName?: string | null;
   items: SaleItem[];
   createdAt: string;
 }
@@ -306,6 +310,20 @@ export interface Debt {
   settled: boolean;
   /** @nullable */
   settledAt?: string | null;
+  createdAt: string;
+}
+
+export interface AuditLogEntry {
+  id: number;
+  /** @nullable */
+  userId?: string | null;
+  /** @nullable */
+  userName?: string | null;
+  action: string;
+  entityType: string;
+  /** @nullable */
+  entityId?: string | null;
+  summary: string;
   createdAt: string;
 }
 

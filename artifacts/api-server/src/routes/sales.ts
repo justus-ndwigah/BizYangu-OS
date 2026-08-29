@@ -8,6 +8,7 @@ import { z } from "zod";
 import { asyncHandler } from "../lib/asyncHandler";
 import { requireAuth } from "../middlewares/authMiddleware";
 import { HttpError } from "../middlewares/errorHandler";
+import { logAudit } from "../lib/audit";
 
 const router = Router();
 router.use(requireAuth);
@@ -246,6 +247,13 @@ router.post(
     });
 
     res.status(201).json(mapSale(result.sale, result.itemRows));
+    logAudit({
+      req,
+      action: "sale.created",
+      entityType: "sale",
+      entityId: result.sale.id,
+      summary: `Recorded sale ${result.sale.receiptNumber} — KES ${result.sale.total} (${result.sale.method})`,
+    });
   }),
 );
 

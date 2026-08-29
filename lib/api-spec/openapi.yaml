@@ -726,6 +726,21 @@ paths:
                 $ref: "#/components/schemas/MpesaSummary"
 
   # ── REPORTS ──────────────────────────────────────────────────────────────
+  /audit-logs:
+    get:
+      operationId: listAuditLogs
+      tags: [audit]
+      summary: Recent staff activity (admin only)
+      responses:
+        "200":
+          description: Audit log entries, most recent first
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AuditLogEntry"
+
   /reports/daily:
     get:
       operationId: getDailyReport
@@ -1283,6 +1298,28 @@ components:
         createdAt:
           type: string
       required: [id, customerId, customerName, amount, settled, createdAt]
+
+    # ── AUDIT LOG ─────────────────────────────────────────────────────────
+    AuditLogEntry:
+      type: object
+      properties:
+        id:
+          type: number
+        userId:
+          type: ["string", "null"]
+        userName:
+          type: ["string", "null"]
+        action:
+          type: string
+        entityType:
+          type: string
+        entityId:
+          type: ["string", "null"]
+        summary:
+          type: string
+        createdAt:
+          type: string
+      required: [id, action, entityType, summary, createdAt]
 
     DebtInput:
       type: object

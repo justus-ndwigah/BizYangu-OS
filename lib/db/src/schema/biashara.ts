@@ -127,3 +127,21 @@ export const mpesaTransactions = pgTable("mpesa_transactions", {
   confirmedAt: timestamp("confirmed_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
+
+// ── AUDIT LOGS ────────────────────────────────────────────────────────────
+// A simple, append-only trail of who did what. Denormalizes userName (same
+// reasoning as customerName/servedByName elsewhere): a log entry is a
+// historical record and shouldn't change if the user's account is later
+// renamed or deactivated. entityId is stored as text since different entity
+// types use different id types (integer for products/sales, varchar for
+// users).
+export const auditLogs = pgTable("audit_logs", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").references(() => usersTable.id, { onDelete: "set null" }),
+  userName: text("user_name"),
+  action: text("action").notNull(), // e.g. "product.created", "user.deactivated"
+  entityType: text("entity_type").notNull(), // e.g. "product", "sale", "user", "debt"
+  entityId: text("entity_id"),
+  summary: text("summary").notNull(), // short human-readable description for the activity log UI
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});

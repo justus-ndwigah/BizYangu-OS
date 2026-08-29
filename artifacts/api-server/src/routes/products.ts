@@ -6,6 +6,7 @@ import { z } from "zod";
 
 import { asyncHandler } from "../lib/asyncHandler";
 import { requireAuth } from "../middlewares/authMiddleware";
+import { logAudit } from "../lib/audit";
 import { HttpError } from "../middlewares/errorHandler";
 
 const router = Router();
@@ -73,6 +74,13 @@ router.post(
       })
       .returning();
     res.status(201).json(mapProduct(row));
+    logAudit({
+      req,
+      action: "product.created",
+      entityType: "product",
+      entityId: row.id,
+      summary: `Added product "${row.name}"`,
+    });
   }),
 );
 
@@ -106,6 +114,9 @@ router.patch(
   asyncHandler(async (req: Request, res: Response) => {
     const id = Number(req.params.id);
     const body = updateProductSchema.parse(req.body);
+    const [before] = await db.select().from(products).where(eq(products.id, id));
+    if (!before) throw new HttpError(404, "Not found");
+
     const updates: Partial<typeof products.$inferInsert> = {};
     if (body.name !== undefined) updates.name = body.name;
     if (body.barcode !== undefined) updates.sku = body.barcode;
@@ -120,6 +131,29 @@ router.patch(
     const [row] = await db.update(products).set(updates).where(eq(products.id, id)).returning();
     if (!row) throw new HttpError(404, "Not found");
     res.json(mapProduct(row));
+
+    // Stock changes get their own callout since they're the most
+    // accountability-sensitive edit (shrinkage, miscounts, corrections).
+    const changes: string[] = [];
+    if (body.stock !== undefined && body.stock !== before.stock) {
+      changes.push(`stock ${before.stock} → ${body.stock}`);
+    }
+    if (body.sellPrice !== undefined && Number(before.sellingPrice) !== body.sellPrice) {
+      changes.push(`price KES ${before.sellingPrice} → ${body.sellPrice}`);
+    }
+    if (body.name !== undefined && body.name !== before.name) {
+      changes.push(`renamed from "${before.name}"`);
+    }
+    logAudit({
+      req,
+      action: "product.updated",
+      entityType: "product",
+      entityId: row.id,
+      summary:
+        changes.length > 0
+          ? `Updated "${row.name}" (${changes.join(", ")})`
+          : `Updated "${row.name}"`,
+    });
   }),
 );
 
@@ -131,6 +165,13 @@ router.delete(
     const [row] = await db.delete(products).where(eq(products.id, id)).returning();
     if (!row) throw new HttpError(404, "Not found");
     res.status(204).send();
+    logAudit({
+      req,
+      action: "product.deleted",
+      entityType: "product",
+      entityId: row.id,
+      summary: `Deleted product "${row.name}"`,
+    });
   }),
 );
 
