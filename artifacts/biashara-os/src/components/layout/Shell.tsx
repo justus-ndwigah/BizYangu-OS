@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { Link, useLocation } from 'wouter';
 import { useAuth } from '@workspace/auth-web';
 import { 
-  Store, 
   LayoutDashboard, 
   Package, 
   ShoppingCart, 
@@ -25,18 +24,20 @@ interface NavItem {
   label: string;
   icon: React.ElementType;
   adminOnly?: boolean;
+  iconColor: string;
+  iconBg: string;
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { href: '/', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/record-sale', label: 'Record Sale', icon: ShoppingCart },
-  { href: '/inventory', label: 'Inventory', icon: Package },
-  { href: '/customers', label: 'Customers', icon: Users },
-  { href: '/mpesa', label: 'M-PESA', icon: Wallet },
-  { href: '/reports', label: 'Reports', icon: BarChart3 },
-  { href: '/activity-log', label: 'Activity Log', icon: History, adminOnly: true },
-  { href: '/ai-chat', label: 'AI Advisor', icon: MessageSquare },
-  { href: '/settings', label: 'Settings', icon: SettingsIcon },
+  { href: '/', label: 'Dashboard', icon: LayoutDashboard, iconColor: 'text-blue-600', iconBg: 'bg-blue-50' },
+  { href: '/record-sale', label: 'Record Sale', icon: ShoppingCart, iconColor: 'text-orange-600', iconBg: 'bg-orange-50' },
+  { href: '/inventory', label: 'Inventory', icon: Package, iconColor: 'text-violet-600', iconBg: 'bg-violet-50' },
+  { href: '/customers', label: 'Customers', icon: Users, iconColor: 'text-pink-600', iconBg: 'bg-pink-50' },
+  { href: '/mpesa', label: 'M-PESA', icon: Wallet, iconColor: 'text-emerald-600', iconBg: 'bg-emerald-50' },
+  { href: '/reports', label: 'Reports', icon: BarChart3, iconColor: 'text-cyan-600', iconBg: 'bg-cyan-50' },
+  { href: '/activity-log', label: 'Activity Log', icon: History, adminOnly: true, iconColor: 'text-amber-600', iconBg: 'bg-amber-50' },
+  { href: '/ai-chat', label: 'AI Advisor', icon: MessageSquare, iconColor: 'text-indigo-600', iconBg: 'bg-indigo-50' },
+  { href: '/settings', label: 'Settings', icon: SettingsIcon, iconColor: 'text-slate-600', iconBg: 'bg-slate-100' },
 ];
 
 export function Shell({ children }: { children: React.ReactNode }) {
@@ -54,7 +55,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
       {/* Mobile Topbar */}
       <div className="md:hidden flex items-center justify-between p-4 bg-card border-b border-border sticky top-0 z-30">
         <div className="flex items-center gap-2 text-primary font-bold text-lg">
-          <Store className="w-6 h-6" />
+          <img src="/app-icon.png" className="w-7 h-7 rounded-lg" alt="" />
           <span>BizYangu OS</span>
         </div>
         <Button 
@@ -72,13 +73,11 @@ export function Shell({ children }: { children: React.ReactNode }) {
         isMobileMenuOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
       )}>
         <div className="p-6 hidden md:flex items-center gap-3 text-sidebar-primary font-bold text-2xl tracking-tight">
-          <div className="w-8 h-8 bg-sidebar-primary rounded-lg flex items-center justify-center">
-            <Store className="w-5 h-5 text-sidebar-primary-foreground" />
-          </div>
+          <img src="/app-icon.png" className="w-9 h-9 rounded-lg" alt="" />
           <span>BizYangu OS</span>
         </div>
         
-        <nav className="flex-1 overflow-y-auto px-4 py-4 md:py-0 space-y-1">
+        <nav className="sidebar-scroll flex-1 overflow-y-auto px-4 py-4 md:py-0 space-y-1">
           <div className="md:hidden mb-6 flex items-center gap-3 px-2">
             <Avatar className="w-10 h-10 border-2 border-primary/10">
               <AvatarImage src={user?.profileImageUrl || undefined} />
@@ -103,14 +102,19 @@ export function Shell({ children }: { children: React.ReactNode }) {
                 key={item.href} 
                 href={item.href}
                 className={cn(
-                  "flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-colors relative group",
+                  "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors relative group",
                   isActive 
                     ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-sm" 
                     : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                 )}
                 onClick={() => setIsMobileMenuOpen(false)}
               >
-                <item.icon className={cn("w-5 h-5", isActive ? "text-sidebar-primary-foreground" : "text-sidebar-foreground/70 group-hover:text-sidebar-foreground")} />
+                <div className={cn(
+                  "w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors",
+                  isActive ? "bg-white/15" : item.iconBg
+                )}>
+                  <item.icon className={cn("w-4 h-4", isActive ? "text-sidebar-primary-foreground" : item.iconColor)} />
+                </div>
                 {item.label}
                 {isActive && (
                   <div className="absolute right-2 w-1.5 h-1.5 rounded-full bg-accent" />

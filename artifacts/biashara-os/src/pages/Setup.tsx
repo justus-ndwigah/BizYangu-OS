@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { Store, ArrowRight, AlertCircle } from 'lucide-react';
+import { ArrowRight, AlertCircle } from 'lucide-react';
 import { useCompleteSetup, getGetCurrentAuthUserQueryKey } from '@workspace/api-client-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -59,8 +59,8 @@ export function Setup() {
     <div className="min-h-[100dvh] w-full flex flex-col items-center justify-center bg-background p-4">
       <div className="w-full max-w-md">
         <div className="flex flex-col items-center text-center space-y-4 mb-6">
-          <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center shadow-lg shadow-primary/20">
-            <Store className="w-8 h-8 text-primary-foreground" />
+          <div className="w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg shadow-primary/20 overflow-hidden">
+            <img src="/app-icon.png" className="w-full h-full object-cover" alt="" />
           </div>
           <div>
             <h1 className="text-2xl font-extrabold tracking-tight">Welcome to BizYangu OS</h1>

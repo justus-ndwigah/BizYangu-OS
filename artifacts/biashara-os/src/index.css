@@ -265,6 +265,29 @@
   }
 }
 
+/* Sidebar scrollbar: the default browser scrollbar is a stark gray box that
+   clashes with the cream/green sidebar. Track blends into the sidebar
+   background; thumb picks up the sidebar's own accent tone instead of gray,
+   and only becomes clearly visible on hover so it doesn't compete with the
+   nav icons at rest. */
+.sidebar-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--sidebar-border)) transparent;
+}
+.sidebar-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+.sidebar-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.sidebar-scroll::-webkit-scrollbar-thumb {
+  background-color: hsl(var(--sidebar-border));
+  border-radius: 9999px;
+}
+.sidebar-scroll::-webkit-scrollbar-thumb:hover {
+  background-color: hsl(var(--sidebar-primary) / 0.4);
+}
+
 /* Printing a receipt (or saving it as PDF via the OS print dialog): hide
    everything on the page except the receipt itself. body > * hides
    top-level app chrome (sidebar/topbar), and the receipt's own print:block
@@ -272,6 +295,10 @@
    nested inside a hidden ancestor and still render, since visibility isn't
    what's controlling it here. */
 @media print {
+  @page {
+    size: 80mm auto;
+    margin: 0;
+  }
   body * {
     visibility: hidden;
   }

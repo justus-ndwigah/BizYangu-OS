@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { useAuth } from '@workspace/auth-web';
-import { Store, ArrowRight, ShieldCheck, AlertCircle } from 'lucide-react';
+import { ArrowRight, ShieldCheck, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -30,8 +30,8 @@ export function Login() {
 
       <div className="z-10 w-full max-w-md p-8">
         <div className="flex flex-col items-center text-center space-y-6">
-          <div className="w-20 h-20 bg-primary rounded-2xl flex items-center justify-center shadow-lg shadow-primary/20 rotate-[-4deg] transition-transform duration-500 hover:rotate-0">
-            <Store className="w-10 h-10 text-primary-foreground" />
+          <div className="w-20 h-20 rounded-2xl flex items-center justify-center shadow-lg shadow-primary/20 rotate-[-4deg] transition-transform duration-500 hover:rotate-0 overflow-hidden">
+            <img src="/app-icon.png" className="w-full h-full object-cover" alt="" />
           </div>
 
           <div className="space-y-2">

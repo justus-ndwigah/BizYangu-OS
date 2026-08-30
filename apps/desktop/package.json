@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "private": true,
   "description": "BiasharaOS desktop app — sales, stock, customers, debts, M-PESA and reports for Kenyan dukas, running fully offline on your computer.",
-  "author": "Jaz Tech",
+  "author": "Justus Ndwiga",
   "license": "MIT",
   "main": "dist/main.cjs",
   "type": "commonjs",
@@ -35,6 +35,7 @@
 	"electronVersion": "33.4.11",
     "appId": "com.bizyangu.app",
     "productName": "BizYangu OS",
+    "icon": "build/icon.ico",
     "directories": {
       "output": "release",
       "buildResources": "build"
