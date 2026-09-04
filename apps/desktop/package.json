@@ -1,7 +1,7 @@
 {
   "name": "@workspace/desktop",
   "productName": "BizYangu OS",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
   "description": "BiasharaOS desktop app — sales, stock, customers, debts, M-PESA and reports for Kenyan dukas, running fully offline on your computer.",
   "author": "Justus Ndwiga",
